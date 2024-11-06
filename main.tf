@@ -17,6 +17,8 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy    = true
       recover_soft_deleted_key_vaults = true
+      purge_soft_deleted_secrets_on_destroy = true
+      recover_soft_deleted_secrets          = true
     }
   }
   subscription_id = "556b3479-49e0-4048-ace9-9b100efe5b6d"
@@ -70,7 +72,12 @@ resource "azurerm_key_vault" "keyvault" {
     ]
 
     secret_permissions = [
+      "Set",
       "Get",
+      "Delete",
+      "Purge",
+      "Recover",
+      "List"
     ]
 
     storage_permissions = [
@@ -79,4 +86,12 @@ resource "azurerm_key_vault" "keyvault" {
   }
 }
 
-#CREER UN SECRET DANS VOTRE KEYVAULT
+#CREER UN SECRET DANS VOTRE KEYVAULT. RAJOUTEZ DANS LE BLOC FEATURE LA DOC SECRET
+
+resource "azurerm_key_vault_secret" "mdpsql" {
+  name         = "mdpsql"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.keyvault.id
+}
+
+#REMPLACEZ LA VALEUR DE VOTRE MDP PAR UN MDP GENERE ALEATOIREMENT
