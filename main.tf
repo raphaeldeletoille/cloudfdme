@@ -138,3 +138,24 @@ resource "azurerm_mssql_database" "sqldb" {
 
 #DEPLOYER 1 VIRTUAL NETWORK (VNET)
 #DEPLOYER 3 SUBNET (SOUS RESEAU) DANS CE VNET. Utiliser 1 seul bloc avec count pour faire ca
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "raph-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_subnet" "subnet" {
+  count                = 3
+  name                 = "raph-subnet${count.index}"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.${count.index}.0/24"]
+}
+
+#DEPLOYER 3 RESOURCE GROUP A PARTIR D UN SEUL BLOC, LES LOCATIONS ET LES TAGS SOIENT DIFFERENT
+#UTILISEZ DES VARIABLES 
+#1e RG = "West Europe", Tag Number "1". 
+#2eme RG = "West US", Tag Number = "2"
+#3eme RG = "Japan", Tag Number = "3"
