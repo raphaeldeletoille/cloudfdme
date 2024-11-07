@@ -159,3 +159,13 @@ resource "azurerm_subnet" "subnet" {
 #1e RG = "West Europe", Tag Number "1". 
 #2eme RG = "West US", Tag Number = "2"
 #3eme RG = "Japan", Tag Number = "3"
+
+resource "azurerm_resource_group" "all_rg" {
+  for_each = var.all_rg
+  name = "raph-${each.key}"
+  location = each.value.location 
+  tags = each.value.tags
+}
+
+#DEPLOYER 1 VM LINUX OU WINDOWS SERVER DANS VOTRE 1ER SOUS RESEAU
+#SIZE DE VOTRE VM = "Standard_B2ms"
