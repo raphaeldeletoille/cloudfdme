@@ -15,8 +15,8 @@ terraform {
 provider "azurerm" {
   features {
     key_vault {
-      purge_soft_delete_on_destroy    = true
-      recover_soft_deleted_key_vaults = true
+      purge_soft_delete_on_destroy          = true
+      recover_soft_deleted_key_vaults       = true
       purge_soft_deleted_secrets_on_destroy = true
       recover_soft_deleted_secrets          = true
     }
@@ -39,7 +39,7 @@ resource "azurerm_storage_account" "storage" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
-  access_tier              = "Cool" 
+  access_tier              = "Cool"
 }
 
 #DEPLOYER UN STORAGE CONTAINER DANS VOTRE STORAGE ACCOUNT EN TERRAFORM
@@ -116,3 +116,25 @@ resource "time_rotating" "twomonths" {
 #VOUS ALLEZ ATTRIBUER VOTRE MDP SECURISE AU SQL SERVER
 #VOTRE DATABASE DOIT POUVOIR ETRE DETRUITE
 #CONNECTEZ VOUS A VOTRE DATABASE "QUERY" DEPUIS LE PORTAIL AZURE PUIS CREER UNE TABLE
+#LA LOCATION DE VOTRE MSSQL SERVER ET DATABASE DOIT ETRE WEST US
+
+resource "azurerm_mssql_server" "sqlsrv" {
+  name                         = "raph-sqlserver-west"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = "West US"
+  version                      = "12.0"
+  administrator_login          = "raph"
+  administrator_login_password = random_password.password.result
+}
+
+resource "azurerm_mssql_database" "sqldb" {
+  name                        = "raph-db"
+  server_id                   = azurerm_mssql_server.sqlsrv.id
+  max_size_gb                 = 2
+  min_capacity                = 1
+  auto_pause_delay_in_minutes = 60
+  sku_name                    = "GP_S_Gen5_2"
+}
+
+#DEPLOYER 1 VIRTUAL NETWORK (VNET)
+#DEPLOYER 3 SUBNET (SOUS RESEAU) DANS CE VNET. Utiliser 1 seul bloc avec count pour faire ca
