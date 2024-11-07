@@ -90,8 +90,29 @@ resource "azurerm_key_vault" "keyvault" {
 
 resource "azurerm_key_vault_secret" "mdpsql" {
   name         = "mdpsql"
-  value        = "szechuan"
+  value        = random_password.password.result
   key_vault_id = azurerm_key_vault.keyvault.id
 }
 
 #REMPLACEZ LA VALEUR DE VOTRE MDP PAR UN MDP GENERE ALEATOIREMENT
+resource "random_password" "password" {
+  length           = 20
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+  min_numeric      = 2
+  min_special      = 1
+  keepers = {
+    rotation = time_rotating.twomonths.id
+  }
+}
+
+#AUTO CHANGE PASSWORD TOUS LES DEUX MOIS
+resource "time_rotating" "twomonths" {
+  rotation_months = 2
+}
+
+#DEPLOYER UN MSSQL SERVER & UN MSSQL DATABASE 
+#SKU DE LA MSSQL DATABASE = "GP_S_Gen5_2"
+#VOUS ALLEZ ATTRIBUER VOTRE MDP SECURISE AU SQL SERVER
+#VOTRE DATABASE DOIT POUVOIR ETRE DETRUITE
+#CONNECTEZ VOUS A VOTRE DATABASE "QUERY" DEPUIS LE PORTAIL AZURE PUIS CREER UNE TABLE
