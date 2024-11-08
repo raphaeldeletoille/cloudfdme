@@ -265,7 +265,8 @@ resource "azurerm_virtual_machine_data_disk_attachment" "diskattach" {
   caching            = "ReadWrite"
 }
 
-#ENVOYER TOUS LES LOGS ET METRICS DE VOTRE KEYVAULT SUR MON LOG ANALYTICS
+#ENVOYER TOUS LES LOGS ET METRICS DE VOTRE KEYVAULT ET DE VOTRE STORAGE ACCOUNT
+#SUR MON LOG ANALYTICS
 resource "azurerm_log_analytics_workspace" "log" {
   name                = "raph-log"
   location            = azurerm_resource_group.rg.location
@@ -273,3 +274,31 @@ resource "azurerm_log_analytics_workspace" "log" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
+
+
+
+resource "azurerm_monitor_diagnostic_setting" "kvlog" {
+  name               = "send-log-to-raph"
+  target_resource_id = azurerm_key_vault.keyvault.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log.id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storagelog" {
+  name               = "send-log-to-raph"
+  target_resource_id = azurerm_storage_account.storage.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log.id
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
+#DEPLOYER UN GRAFANA MANAGE, VOUS ALLEZ VOUS CONNECTER A CE GRAPHANA
