@@ -1,5 +1,9 @@
 data "azurerm_client_config" "current" {}
 
+data "azurerm_subscription" "current" {
+}
+
+
 # data "azurerm_log_analytics_workspace" "LOGANALYTICSPROF" {
 #   name                = "raph-log"
 #   resource_group_name = "raphaeld"

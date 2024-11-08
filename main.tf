@@ -302,3 +302,32 @@ resource "azurerm_monitor_diagnostic_setting" "storagelog" {
 }
 
 #DEPLOYER UN GRAFANA MANAGE, VOUS ALLEZ VOUS CONNECTER A CE GRAPHANA
+
+resource "azurerm_dashboard_grafana" "grafana" {
+  name                              = "raph-grafana"
+  resource_group_name               = azurerm_resource_group.rg.name
+  location                          = "West Europe"
+  grafana_major_version             = 10
+  api_key_enabled                   = true
+  deterministic_outbound_ip_enabled = true
+  public_network_access_enabled     = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "monitoringReader" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Monitoring Reader"
+  principal_id         = azurerm_dashboard_grafana.grafana.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "Raph" {
+  scope                = data.azurerm_subscription.current.id
+  role_definition_name = "Grafana Admin"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+#DEPLOYER UNE ALERTE AZURE QUI VA UTILISER VOTRE ADRESSE MAIL ET VOUS PREVENIR LORSQUE VOTRE
+#KEYVAULT A UN LOG FORBIDDEN
