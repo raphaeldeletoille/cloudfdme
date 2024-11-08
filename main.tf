@@ -179,6 +179,7 @@ resource "azurerm_network_interface" "networkcard" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.subnet[0].id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.IP.id
   }
 }
 
@@ -215,3 +216,60 @@ resource "azurerm_linux_virtual_machine" "vm" {
 #ASSIGNER UNE IP PUBLIC A VOTRE VM
 #VOUS CONNECTER A VOTRE VM
 #ASSIGNEZ DEUX DISQUES DE 1TO A VOTRE VM
+
+resource "azurerm_public_ip" "IP" {
+  name                = "raphIP"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_security_group" "vmnsg" {
+  name                = "raphVMs"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  security_rule {
+    name                       = "raphVM"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "connect" {
+  network_interface_id      = azurerm_network_interface.networkcard.id
+  network_security_group_id = azurerm_network_security_group.vmnsg.id
+}
+
+resource "azurerm_managed_disk" "disk" {
+  count                = 2
+  name                 = "disk${count.index}"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1024"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "diskattach" {
+  count              = 2
+  managed_disk_id    = azurerm_managed_disk.disk[count.index].id
+  virtual_machine_id = azurerm_linux_virtual_machine.vm.id
+  lun                = count.index
+  caching            = "ReadWrite"
+}
+
+#ENVOYER TOUS LES LOGS ET METRICS DE VOTRE KEYVAULT SUR MON LOG ANALYTICS
+resource "azurerm_log_analytics_workspace" "log" {
+  name                = "raph-log"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
