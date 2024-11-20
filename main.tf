@@ -324,7 +324,7 @@ resource "azurerm_role_assignment" "monitoringReader" {
 }
 
 resource "azurerm_role_assignment" "Raph" {
-  scope                = data.azurerm_subscription.current.id
+  scope                = azurerm_resource_group.rg.id
   role_definition_name = "Grafana Admin"
   principal_id         = data.azurerm_client_config.current.object_id
 }
@@ -332,3 +332,51 @@ resource "azurerm_role_assignment" "Raph" {
 #DEPLOYER UNE ALERTE AZURE QUI VA UTILISER VOTRE ADRESSE MAIL ET VOUS PREVENIR LORSQUE VOTRE
 #KEYVAULT A UN LOG FORBIDDEN
 #ESSAYEZ DE TRIGGER L ALERTE
+
+resource "azurerm_monitor_action_group" "raph" {
+  name                = "raphaeld"
+  resource_group_name = azurerm_resource_group.rg.name
+  short_name          = "raphaeld"
+
+  email_receiver {
+    name          = "raphaeld"
+    email_address = "XXX"
+  }
+}
+
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "alert_forbidden" {
+  name                = "alert-kv-forbidden-raph"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT5M"
+  scopes               = [azurerm_log_analytics_workspace.log.id]
+  severity             = 2
+
+  criteria {
+    query                   = <<-QUERY
+      AzureDiagnostics
+      | where Resource == "${upper(azurerm_key_vault.keyvault.name)}" and ResultSignature == "Forbidden"
+    QUERY
+    time_aggregation_method = "Count"
+    threshold               = 0
+    operator                = "GreaterThan"
+
+    failing_periods {
+      minimum_failing_periods_to_trigger_alert = 1
+      number_of_evaluation_periods             = 1
+    }
+  }
+
+  auto_mitigation_enabled          = true
+  workspace_alerts_storage_enabled = false
+  description                      = "Alert for forbidden access to Key Vault"
+  display_name                     = "ForbiddenAccessAlert"
+  enabled                          = true
+
+  action {
+    action_groups = [azurerm_monitor_action_group.raph.id]
+  }
+}
+
