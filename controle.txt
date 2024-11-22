@@ -1,0 +1,52 @@
+Controle FDME
+
+Créer un dossier PRENOM-NOM sur votre Bureau (le controle se fera depuis ce dossier)
+PRENOM-NOM tout en haut de votre code en commentaire.
+
+TP: 
+Utilisez Variables, Count, For_Each, Datasources lorsque necessaire. 
+
+Utilisez le remote state suivant pour le controle afin de stocker votre tfstate à distance : 
+
+resource_group_name  = "controle"
+storage_account_name = "remotestatecontrole"
+container_name       = "container"
+key                  = "<votre_prenom>.tfstate" #Remplacez votre prenom
+
+Tout ce qui est entre guillemets dans les consignes existent déjà.
+
+1) Déployer un resource group avec votre première lettre de prénom suivi de votre nom de famille. (toutes les ressources sont à déployer sur ce resource group)
+
+2) Déployer un Keyvault avec tous les droits secret au groupe utilisateur "group-etudiants".
+
+3) Déployer un MSSQL_Server avec une règle réseau autorisant votre IP Public et la mienne (82.123.113.93). Votre compte utilisateur doit être administrateur du serveur.
+
+4) Déployer une base de données (MSSQL_Database) sur votre MSSQL Server en General Purpose, Generation 5, Serverless, 4 Vcore Maximum. 
+
+5) Déployer 1 vnet et 5 subnets.  
+
+6) Attachez votre MSSQL Server à votre subnet 5. 
+
+7) Déployer 1 Virtual Machine Ubuntu avec 2vCPU et 8Go de RAM (la moins cher possible avec ces caractéristiques) sur votre subnet 5 et stocker la clé SSH dans votre keyvault.
+
+8) Déployer 3 Disks --> un de 500Go, 1 de 1To, 1 de 2To et les connecter à votre Virtual Machine. 
+
+9) Déployer 1 log Analytics, et envoyer les metrics (uniquement les metrics) de votre mssql server dessus.
+
+10) Configurer une alerte par email sur votre adresse email pour être informé d'un dépassement processeur (CPU) de 80% de votre SQL Server.
+
+11) Donnez les droits Contributor à l'utilisateur "pokeuser@deletoilleprooutlook.onmicrosoft.com" sur votre Resource Group
+
+12) Déployer un cluster Kubernetes et attachez son identité au container registry "controle"
+
+13) Connectez-vous à votre cluster Kubernetes et ajoutez dans votre code en commentaire la liste des pods en running. 
+
+Lorsque votre code est terminé, veillez à ce que votre code soit SAUVEGARDE, puis ouvrez Azure Storage Explorer :
+
+- Cliquez sur le symbole "prise" à gauche
+- Cliquez sur Blob Container
+- Sélectionnez Shared Access Signature URL
+- Collez dans Blob URL la clé suivante https://controlefdme.blob.core.windows.net/controle?sp=racwli&st=2024-11-21T12:34:41Z&se=2024-11-22T16:34:41Z&spr=https&sv=2022-11-02&sr=c&sig=8Ix2ZX1uoeG7mvNt%2FcQFp0UTOozap1Xp3ppcgNSFmnw%3D
+- Une fois connecté, Uploadez votre Dossier (Non Zippé)
+
+Faites un Terraform Destroy
